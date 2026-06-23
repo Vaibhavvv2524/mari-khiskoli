@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mari Khiskoli 🐿️</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FDF6EE;
+    --blush: #F7D9C4;
+    --rose: #E8A598;
+    --dusty: #C4797B;
+    --wine: #8B3A3A;
+    --forest: #4A6741;
+    --sage: #7D9B76;
+    --gold: #C9A84C;
+    --warm-white: #FFFAF5;
+    --text-dark: #3A2A1A;
+    --text-mid: #6B4C3B;
+    --text-light: #9B7860;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Lato', sans-serif;
+    background: var(--cream);
+    color: var(--text-dark);
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* ========= PAGES ========= */
+  .page { display: none; min-height: 100vh; }
+  .page.active { display: flex; flex-direction: column; }
+
+  /* ========= PARTICLES ========= */
+  #particle-canvas {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ========= UNWRAP PAGE ========= */
+  #unwrap-page {
+    background: linear-gradient(135deg, #2C1810 0%, #4A2520 40%, #6B3A35 70%, #3A2010 100%);
+    align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+
+  .stars {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    overflow: hidden; pointer-events: none;
+  }
+  .star {
+    position: absolute; border-radius: 50%;
+    background: #FFF9E6; animation: twinkle var(--d) ease-in-out infinite alternate;
+  }
+  @keyframes twinkle { from { opacity: 0.2; transform: scale(0.8); } to { opacity: 1; transform: scale(1.2); } }
+
+  .gift-container {
+    position: relative; z-index: 10;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 2rem; text-align: center; padding: 2rem;
+  }
+
+  .gift-box-wrap {
+    position: relative; cursor: pointer;
+    transition: transform 0.3s ease;
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5));
+  }
+  .gift-box-wrap:hover { transform: scale(1.05) translateY(-5px); }
+  .gift-box-wrap:active { transform: scale(0.98); }
+
+  .gift-svg { width: 220px; height: 220px; }
+
+  @keyframes float {
+    0%,100% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+  }
+  .floating { animation: float 3s ease-in-out infinite; }
+
+  @keyframes ribbon-shimmer {
+    0%,100% { opacity: 0.9; }
+    50% { opacity: 1; filter: brightness(1.3); }
+  }
+  .ribbon-glow { animation: ribbon-shimmer 2s ease-in-out infinite; }
+
+  .unwrap-title {
+    font-family: 'Playfair Display', serif;
+    color: var(--blush);
+    font-size: clamp(1.6rem, 5vw, 2.8rem);
+    line-height: 1.3;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+  }
+  .unwrap-subtitle {
+    color: rgba(247,217,196,0.75);
+    font-size: clamp(0.85rem, 2.5vw, 1.05rem);
+    font-weight: 300; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    animation: pulse-text 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse-text { 0%,100%{opacity:0.6} 50%{opacity:1} }
+
+  .unwrap-btn {
+    background: linear-gradient(135deg, var(--gold), #E8C97A, var(--gold));
+    border: none; border-radius: 50px;
+    padding: 1rem 2.5rem;
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem; font-weight: 700;
+    color: #3A2010; cursor: pointer;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    box-shadow: 0 4px 20px rgba(201,168,76,0.4), 0 0 40px rgba(201,168,76,0.2);
+    transition: all 0.3s ease;
+    animation: btn-pulse 2s ease-in-out infinite;
+  }
+  @keyframes btn-pulse { 0%,100%{box-shadow: 0 4px 20px rgba(201,168,76,0.4), 0 0 40px rgba(201,168,76,0.2)} 50%{box-shadow: 0 4px 30px rgba(201,168,76,0.7), 0 0 60px rgba(201,168,76,0.4)} }
+  .unwrap-btn:hover { transform: scale(1.07); }
+  .unwrap-btn:active { transform: scale(0.97); }
+
+  /* ========= REVEAL OVERLAY ========= */
+  #reveal-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: radial-gradient(circle at center, #FDF6EE 0%, #F7D9C4 50%, #E8A598 100%);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.8s ease;
+  }
+  #reveal-overlay.visible { opacity: 1; pointer-events: all; }
+  .reveal-content {
+    text-align: center; transform: scale(0.7); opacity: 0;
+    transition: all 0.8s cubic-bezier(0.34,1.56,0.64,1);
+    padding: 2rem;
+  }
+  #reveal-overlay.visible .reveal-content { transform: scale(1); opacity: 1; }
+  .reveal-squirrel { font-size: 6rem; display: block; margin-bottom: 1rem;
+    animation: bounce-in 1s cubic-bezier(0.34,1.56,0.64,1) 0.5s both; }
+  @keyframes bounce-in { from{transform:scale(0) rotate(-20deg)} to{transform:scale(1) rotate(0deg)} }
+  .reveal-title {
+    font-family: 'Playfair Display', serif; font-style: italic;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    color: var(--wine); margin-bottom: 0.5rem;
+  }
+  .reveal-sub {
+    color: var(--text-mid); font-size: 1.1rem; font-weight: 300;
+    letter-spacing: 0.1em; margin-bottom: 2rem;
+  }
+  .reveal-enter-btn {
+    background: var(--wine); color: #FDF6EE;
+    border: none; border-radius: 50px;
+    padding: 0.9rem 2.5rem; font-size: 1rem;
+    font-family: 'Lato', sans-serif;
+    font-weight: 700; cursor: pointer;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    transition: all 0.3s; box-shadow: 0 4px 20px rgba(139,58,58,0.3);
+  }
+  .reveal-enter-btn:hover { background: var(--dusty); transform: translateY(-2px); }
+
+  /* ========= HOME PAGE ========= */
+  #home-page {
+    background: var(--cream); min-height: 100vh;
+    position: relative; overflow: hidden;
+  }
+
+  .home-header {
+    text-align: center; padding: 3.5rem 2rem 2rem;
+    position: relative; z-index: 2;
+  }
+  .home-squirrel-icon { font-size: 3.5rem; margin-bottom: 0.5rem; display: block; }
+  .home-title {
+    font-family: 'Playfair Display', serif; font-style: italic;
+    font-size: clamp(2.2rem, 6vw, 4rem);
+    color: var(--wine); line-height: 1.1;
+  }
+  .home-sub {
+    color: var(--text-light); font-weight: 300;
+    font-size: 1rem; letter-spacing: 0.15em;
+    text-transform: uppercase; margin-top: 0.5rem;
+  }
+
+  .birthday-banner {
+    background: linear-gradient(135deg, var(--wine), var(--dusty));
+    color: #FDF6EE; text-align: center;
+    padding: 0.75rem 2rem; font-size: 0.9rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    font-weight: 700; position: relative; z-index: 2;
+  }
+
+  .home-nav {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem; padding: 2.5rem 2rem 2rem;
+    max-width: 900px; margin: 0 auto;
+    position: relative; z-index: 2;
+  }
+
+  .nav-card {
+    background: var(--warm-white);
+    border: 1.5px solid var(--blush);
+    border-radius: 20px; padding: 2rem 1.5rem;
+    cursor: pointer; transition: all 0.35s ease;
+    text-align: center; position: relative; overflow: hidden;
+    box-shadow: 0 4px 20px rgba(139,58,58,0.06);
+  }
+  .nav-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--blush), transparent);
+    opacity: 0; transition: opacity 0.35s;
+  }
+  .nav-card:hover { transform: translateY(-8px); box-shadow: 0 12px 40px rgba(139,58,58,0.14); border-color: var(--rose); }
+  .nav-card:hover::before { opacity: 0.3; }
+  .nav-card:active { transform: translateY(-4px); }
+
+  .nav-card-emoji { font-size: 2.8rem; display: block; margin-bottom: 0.75rem; }
+  .nav-card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem; color: var(--wine);
+    margin-bottom: 0.4rem;
+  }
+  .nav-card-desc { color: var(--text-light); font-size: 0.875rem; line-height: 1.5; }
+
+  .home-footer {
+    text-align: center; padding: 2rem;
+    color: var(--text-light); font-size: 0.85rem;
+    font-style: italic;
+    position: relative; z-index: 2;
+  }
+
+  /* Floating squirrels bg */
+  .bg-squirrel {
+    position: absolute; font-size: 1.5rem;
+    opacity: 0.06; pointer-events: none;
+    animation: drift var(--dd) ease-in-out infinite alternate;
+  }
+  @keyframes drift { from{transform:translateY(0) rotate(-5deg)} to{transform:translateY(-20px) rotate(5deg)} }
+
+  /* ========= INNER PAGES ========= */
+  .inner-page { background: var(--cream); }
+
+  .page-header {
+    background: linear-gradient(135deg, var(--wine) 0%, var(--dusty) 100%);
+    padding: 2rem 2rem 1.5rem;
+    color: #FDF6EE; position: relative; overflow: hidden;
+  }
+  .page-header::after {
+    content: '🐿️🐿️🐿️🐿️🐿️🐿️🐿️🐿️';
+    position: absolute; bottom: -8px; left: 0;
+    font-size: 1.8rem; opacity: 0.12; white-space: nowrap;
+  }
+  .back-btn {
+    background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4);
+    color: #FDF6EE; border-radius: 50px; padding: 0.4rem 1rem;
+    font-size: 0.8rem; cursor: pointer; letter-spacing: 0.05em;
+    text-transform: uppercase; font-family: 'Lato', sans-serif;
+    transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+  .back-btn:hover { background: rgba(255,255,255,0.3); }
+  .page-title {
+    font-family: 'Playfair Display', serif; font-style: italic;
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+  }
+  .page-subtitle { opacity: 0.8; font-size: 0.9rem; margin-top: 0.25rem; font-weight: 300; }
+
+  .page-content { padding: 2rem; max-width: 900px; margin: 0 auto; }
+
+  /* ========= NICKNAMES ========= */
+  .nicknames-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem; margin-top: 1rem;
+  }
+  .nickname-card {
+    background: var(--warm-white); border: 1.5px solid var(--blush);
+    border-radius: 16px; padding: 1.25rem 1rem;
+    text-align: center; transition: all 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .nickname-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(139,58,58,0.12); border-color: var(--rose); }
+  .nickname-emoji { font-size: 1.8rem; display: block; margin-bottom: 0.5rem; }
+  .nickname-name {
+    font-family: 'Playfair Display', serif; font-style: italic;
+    font-size: 1.15rem; color: var(--wine); display: block;
+  }
+  .nickname-meaning { font-size: 0.78rem; color: var(--text-light); margin-top: 0.3rem; }
+
+  /* ========= ALBUMS ========= */
+  .albums-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem; margin-top: 1rem;
+  }
+  .album-card {
+    background: var(--warm-white); border: 1.5px solid var(--blush);
+    border-radius: 20px; overflow: hidden;
+    transition: all 0.3s; cursor: pointer;
+  }
+  .album-card:hover { transform: translateY(-5px); box-shadow: 0 12px 35px rgba(139,58,58,0.12); border-color: var(--rose); }
+  .album-thumb {
+    width: 100%; aspect-ratio: 4/3;
+    object-fit: cover; display: block;
+    background: var(--blush);
+  }
+  .album-thumb-placeholder {
+    width: 100%; aspect-ratio: 4/3;
+    background: linear-gradient(135deg, var(--blush), var(--rose));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3rem; color: var(--wine); opacity: 0.5;
+  }
+  .album-info { padding: 1rem 1.25rem; }
+  .album-title { font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--wine); }
+  .album-date { font-size: 0.8rem; color: var(--text-light); margin-top: 0.25rem; }
+
+  /* ========= LETTERS ========= */
+  .letters-list { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1rem; }
+  .letter-card {
+    background: var(--warm-white); border: 1.5px solid var(--blush);
+    border-radius: 20px; padding: 1.75rem 2rem;
+    position: relative; overflow: hidden;
+    transition: all 0.3s;
+    box-shadow: 0 2px 15px rgba(139,58,58,0.05);
+  }
+  .letter-card::before {
+    content: '"'; font-family: 'Playfair Display', serif;
+    position: absolute; top: -10px; left: 15px;
+    font-size: 6rem; color: var(--blush); line-height: 1;
+    pointer-events: none;
+  }
+  .letter-card:hover { box-shadow: 0 8px 30px rgba(139,58,58,0.1); border-color: var(--rose); }
+  .letter-date {
+    font-size: 0.78rem; color: var(--text-light);
+    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.75rem;
+  }
+  .letter-title {
+    font-family: 'Playfair Display', serif; font-style: italic;
+    font-size: 1.3rem; color: var(--wine); margin-bottom: 0.75rem;
+  }
+  .letter-body {
+    color: var(--text-mid); line-height: 1.85; font-size: 0.95rem;
+    white-space: pre-wrap;
+  }
+
+  /* ========= EDITS ========= */
+  .edits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem; margin-top: 1rem;
+  }
+  .edit-card {
+    background: var(--warm-white); border: 1.5px solid var(--blush);
+    border-radius: 20px; overflow: hidden; transition: all 0.3s;
+  }
+  .edit-card:hover { transform: translateY(-5px); box-shadow: 0 12px 35px rgba(139,58,58,0.12); border-color: var(--rose); }
+  .edit-preview {
+    width: 100%; aspect-ratio: 16/9;
+    background: linear-gradient(135deg, var(--wine), var(--dusty));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem; position: relative; overflow: hidden;
+  }
+  .edit-preview img, .edit-preview video { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+  .edit-play-icon {
+    position: relative; z-index: 1;
+    background: rgba(255,255,255,0.25);
+    border-radius: 50%; width: 48px; height: 48px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; backdrop-filter: blur(4px);
+  }
+  .edit-info { padding: 1rem 1.25rem; }
+  .edit-title { font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--wine); }
+  .edit-desc { font-size: 0.8rem; color: var(--text-light); margin-top: 0.25rem; }
+
+  /* ========= LIGHTBOX ========= */
+  #lightbox {
+    position: fixed; inset: 0; z-index: 2000;
+    background: rgba(42,10,5,0.92);
+    display: none; align-items: center; justify-content: center;
+    padding: 2rem; backdrop-filter: blur(8px);
+  }
+  #lightbox.open { display: flex; }
+  .lightbox-inner { max-width: 90vw; max-height: 90vh; position: relative; text-align: center; }
+  #lightbox-media { max-width: 100%; max-height: 80vh; border-radius: 12px; display: block; margin: 0 auto; }
+  .lightbox-close {
+    position: absolute; top: -40px; right: 0;
+    color: #FDF6EE; background: none; border: none;
+    font-size: 1.5rem; cursor: pointer; padding: 0.25rem;
+  }
+  .lightbox-caption { color: rgba(253,246,238,0.8); margin-top: 1rem; font-style: italic; font-size: 0.9rem; }
+
+  /* ========= ADMIN ========= */
+  #admin-login-page {
+    background: var(--cream);
+    align-items: center; justify-content: center;
+  }
+  .admin-login-card {
+    background: var(--warm-white); border: 1.5px solid var(--blush);
+    border-radius: 24px; padding: 2.5rem 2rem;
+    max-width: 380px; width: 100%; text-align: center;
+    box-shadow: 0 8px 40px rgba(139,58,58,0.08);
+  }
+  .admin-login-title {
+    font-family: 'Playfair Display', serif; font-style: italic;
+    font-size: 1.8rem; color: var(--wine); margin-bottom: 0.5rem;
+  }
+  .admin-login-sub { color: var(--text-light); font-size: 0.875rem; margin-bottom: 1.75rem; }
+  .form-group { margin-bottom: 1.25rem; text-align: left; }
+  .form-label { font-size: 0.8rem; color: var(--text-mid); letter-spacing: 0.06em; text-transform: uppercase; display: block; margin-bottom: 0.4rem; }
+  .form-input {
+    width: 100%; padding: 0.75rem 1rem;
+    border: 1.5px solid var(--blush); border-radius: 12px;
+    background: var(--cream); font-family: 'Lato', sans-serif;
+    font-size: 0.95rem; color: var(--text-dark);
+    transition: border-color 0.2s; outline: none;
+  }
+  .form-input:focus { border-color: var(--rose); }
+  .form-textarea {
+    width: 100%; padding: 0.75rem 1rem;
+    border: 1.5px solid var(--blush); border-radius: 12px;
+    background: var(--cream); font-family: 'Lato', sans-serif;
+    font-size: 0.95rem; color: var(--text-dark);
+    resize: vertical; min-height: 100px;
+    transition: border-color 0.2s; outline: none;
+  }
+  .form-textarea:focus { border-color: var(--rose); }
+  .primary-btn {
+    background: var(--wine); color: #FDF6EE;
+    border: none; border-radius: 50px; width: 100%;
+    padding: 0.85rem; font-family: 'Lato', sans-serif;
+    font-size: 0.95rem; font-weight: 700; cursor: pointer;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    transition: all 0.3s; box-shadow: 0 4px 15px rgba(139,58,58,0.25);
+  }
+  .primary-btn:hover { background: var(--dusty); transform: translateY(-1px); }
+  .form-error { color: var(--dusty); font-size: 0.8rem; margin-top: 0.5rem; display: none; }
+
+  #admin-page { background: var(--cream); flex-direction: column; }
+  .admin-topbar {
+    background: var(--wine); color: #FDF6EE;
+    padding: 1rem 2rem; display: flex; align-items: center;
+    justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .admin-topbar-title { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.4rem; }
+  .admin-topbar-right { display: flex; gap: 0.75rem; align-items: center; }
+  .topbar-btn {
+    background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.35);
+    color: #FDF6EE; border-radius: 50px; padding: 0.45rem 1.1rem;
+    font-size: 0.8rem; cursor: pointer; font-family: 'Lato', sans-serif;
+    font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .topbar-btn:hover { background: rgba(255,255,255,0.35); }
+  .topbar-btn.danger { background: rgba(255,80,80,0.25); border-color: rgba(255,80,80,0.4); }
+
+  .admin-tabs {
+    display: flex; gap: 0; background: var(--warm-white);
+    border-bottom: 1.5px solid var(--blush); overflow-x: auto;
+    padding: 0 1.5rem;
+  }
+  .admin-tab {
+    padding: 0.85rem 1.25rem; font-size: 0.85rem; cursor: pointer;
+    color: var(--text-light); border-bottom: 2.5px solid transparent;
+    white-space: nowrap; transition: all 0.2s; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    background: none; border-top: none; border-left: none; border-right: none;
+    font-family: 'Lato', sans-serif;
+  }
+  .admin-tab.active { color: var(--wine); border-bottom-color: var(--wine); }
+  .admin-tab:hover:not(.active) { color: var(--text-mid); }
+
+  .admin-content { padding: 1.5rem 2rem; max-width: 900px; width: 100%; margin: 0 auto; }
+  .admin-section { display: none; }
+  .admin-section.active { display: block; }
+
+  .admin-section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+  }
+  .section-h2 { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--wine); }
+  .add-btn {
+    background: var(--forest); color: #FDF6EE;
+    border: none; border-radius: 50px; padding: 0.55rem 1.25rem;
+    font-size: 0.82rem; cursor: pointer; font-family: 'Lato', sans-serif;
+    font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    transition: all 0.2s; box-shadow: 0 3px 12px rgba(74,103,65,0.25);
+  }
+  .add-btn:hover { background: var(--sage); transform: translateY(-1px); }
+
+  .admin-item-list { display: flex; flex-direction: column; gap: 0.75rem; }
+  .admin-item {
+    background: var(--warm-white); border: 1.5px solid var(--blush);
+    border-radius: 14px; padding: 1rem 1.25rem;
+    display: flex; gap: 1rem; align-items: flex-start;
+  }
+  .admin-item-info { flex: 1; min-width: 0; }
+  .admin-item-name { font-weight: 700; color: var(--text-dark); font-size: 0.95rem; }
+  .admin-item-sub { color: var(--text-light); font-size: 0.8rem; margin-top: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .admin-item-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+  .icon-btn {
+    background: none; border: 1.5px solid var(--blush); border-radius: 8px;
+    padding: 0.4rem 0.6rem; cursor: pointer; font-size: 0.85rem;
+    color: var(--text-mid); transition: all 0.2s;
+  }
+  .icon-btn:hover { background: var(--blush); }
+  .icon-btn.del:hover { background: #FFEAEA; border-color: var(--dusty); color: var(--dusty); }
+
+  /* ========= MODAL ========= */
+  #modal-overlay {
+    position: fixed; inset: 0; z-index: 3000;
+    background: rgba(42,10,5,0.65); backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center; padding: 2rem;
+  }
+  #modal-overlay.open { display: flex; }
+  .modal-card {
+    background: var(--warm-white); border-radius: 24px;
+    padding: 2rem; max-width: 500px; width: 100%;
+    max-height: 85vh; overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .modal-title {
+    font-family: 'Playfair Display', serif; font-style: italic;
+    font-size: 1.5rem; color: var(--wine); margin-bottom: 1.5rem;
+  }
+  .modal-actions { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
+  .cancel-btn {
+    background: none; border: 1.5px solid var(--blush); color: var(--text-mid);
+    border-radius: 50px; padding: 0.7rem 1.5rem;
+    font-family: 'Lato', sans-serif; font-size: 0.9rem;
+    cursor: pointer; transition: all 0.2s; flex: 1;
+  }
+  .cancel-btn:hover { background: var(--blush); }
+  .save-btn {
+    background: var(--wine); color: #FDF6EE;
+    border: none; border-radius: 50px; padding: 0.7rem 1.5rem;
+    font-family: 'Lato', sans-serif; font-size: 0.9rem;
+    font-weight: 700; cursor: pointer; transition: all 0.2s; flex: 2;
+  }
+  .save-btn:hover { background: var(--dusty); }
+
+  .file-upload-area {
+    border: 2px dashed var(--rose); border-radius: 12px;
+    padding: 1.5rem; text-align: center; cursor: pointer;
+    transition: all 0.2s; color: var(--text-light); font-size: 0.875rem;
+  }
+  .file-upload-area:hover { border-color: var(--wine); background: var(--blush); opacity: 0.7; }
+  .file-upload-area input { display: none; }
+
+  /* ========= TOAST ========= */
+  #toast {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--wine); color: #FDF6EE;
+    padding: 0.75rem 1.5rem; border-radius: 50px;
+    font-size: 0.875rem; opacity: 0; pointer-events: none;
+    transition: all 0.4s; z-index: 9999; white-space: nowrap;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ========= RESPONSIVE ========= */
+  @media (max-width: 600px) {
+    .home-nav { grid-template-columns: 1fr; padding: 1.5rem 1rem; }
+    .page-content { padding: 1.5rem 1rem; }
+    .admin-content { padding: 1.25rem 1rem; }
+    .letter-card { padding: 1.25rem 1rem; }
+    .nicknames-grid { grid-template-columns: repeat(2, 1fr); }
+    .admin-topbar { padding: 0.85rem 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="particle-canvas"></canvas>
+
+<!-- ======= UNWRAP PAGE ======= -->
+<div id="unwrap-page" class="page active">
+  <div class="stars" id="stars-container"></div>
+  <div class="gift-container">
+    <div class="gift-box-wrap floating" onclick="openGift()">
+      <svg class="gift-svg" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+        <!-- Box body -->
+        <rect x="30" y="110" width="160" height="95" rx="8" fill="#8B3A3A"/>
+        <rect x="30" y="110" width="160" height="95" rx="8" fill="url(#box-shine)" opacity="0.3"/>
+        <!-- Box lid -->
+        <rect x="20" y="88" width="180" height="32" rx="7" fill="#C4797B"/>
+        <rect x="20" y="88" width="180" height="32" rx="7" fill="url(#lid-shine)" opacity="0.3"/>
+        <!-- Ribbon vertical -->
+        <rect x="102" y="88" width="16" height="117" fill="#C9A84C"/>
+        <rect x="102" y="88" width="16" height="117" fill="url(#ribbon-shine)" opacity="0.4"/>
+        <!-- Ribbon horizontal on lid -->
+        <rect x="20" y="98" width="180" height="12" fill="#C9A84C"/>
+        <!-- Bow left loop -->
+        <ellipse cx="95" cy="78" rx="28" ry="18" fill="#E8C97A" transform="rotate(-25,95,78)" class="ribbon-glow"/>
+        <!-- Bow right loop -->
+        <ellipse cx="125" cy="78" rx="28" ry="18" fill="#E8C97A" transform="rotate(25,125,78)" class="ribbon-glow"/>
+        <!-- Bow center knot -->
+        <ellipse cx="110" cy="82" rx="12" ry="10" fill="#C9A84C"/>
+        <!-- Shine on knot -->
+        <ellipse cx="107" cy="79" rx="5" ry="3.5" fill="#F5E0A0" opacity="0.6" transform="rotate(-15,107,79)"/>
+        <!-- Stars on box -->
+        <text x="55" y="165" font-size="22" opacity="0.5">✦</text>
+        <text x="145" y="155" font-size="16" opacity="0.4">✦</text>
+        <text x="65" y="185" font-size="12" opacity="0.35">✦</text>
+        <!-- Squirrel peek -->
+        <text x="85" y="75" font-size="13" opacity="0.85">🐿️</text>
+        <defs>
+          <linearGradient id="box-shine" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#fff" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="lid-shine" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#fff" stop-opacity="0.4"/>
+            <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="ribbon-shine" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="30%" stop-color="#fff" stop-opacity="0.5"/>
+            <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+
+    <h1 class="unwrap-title">A little something<br>just for you ♡</h1>
+    <p class="unwrap-subtitle">Tap the gift to unwrap your surprise</p>
+    <button class="unwrap-btn" onclick="openGift()">🎁 Unwrap!</button>
+  </div>
+</div>
+
+<!-- ======= REVEAL OVERLAY ======= -->
+<div id="reveal-overlay">
+  <div class="reveal-content">
+    <span class="reveal-squirrel">🐿️</span>
+    <h1 class="reveal-title">This is for<br>Mari Khiskoli</h1>
+    <p class="reveal-sub">Happy 18th Birthday, Gargi 🎂</p>
+    <button class="reveal-enter-btn" onclick="enterSite()">Enter Your Gift →</button>
+  </div>
+</div>
+
+<!-- ======= HOME PAGE ======= -->
+<div id="home-page" class="page inner-page">
+  <div class="birthday-banner">🎉 Happy 18th Birthday, Mari Khiskoli! 🎉</div>
+  <div class="home-header">
+    <span class="home-squirrel-icon">🐿️</span>
+    <h1 class="home-title">Mari Khiskoli</h1>
+    <p class="home-sub">A little world made just for you</p>
+  </div>
+
+  <!-- BG squirrels -->
+  <span class="bg-squirrel" style="top:15%;left:5%;--dd:4s">🐿️</span>
+  <span class="bg-squirrel" style="top:40%;right:4%;--dd:5s">🌰</span>
+  <span class="bg-squirrel" style="top:70%;left:8%;--dd:3.5s">🐿️</span>
+  <span class="bg-squirrel" style="top:25%;right:10%;--dd:6s">🌿</span>
+
+  <div class="home-nav">
+    <div class="nav-card" onclick="showPage('nicknames-page')">
+      <span class="nav-card-emoji">💝</span>
+      <div class="nav-card-title">Things I'd Call My Gargi</div>
+      <div class="nav-card-desc">Every pet name, every nickname, every sweet little word I have for you</div>
+    </div>
+    <div class="nav-card" onclick="showPage('albums-page')">
+      <span class="nav-card-emoji">📸</span>
+      <div class="nav-card-title">Albums</div>
+      <div class="nav-card-desc">Photos and videos of us — our memories captured in pixels</div>
+    </div>
+    <div class="nav-card" onclick="showPage('edits-page')">
+      <span class="nav-card-emoji">🎬</span>
+      <div class="nav-card-title">Edits</div>
+      <div class="nav-card-desc">All the edits, graphics, and creative things I've made for you</div>
+    </div>
+    <div class="nav-card" onclick="showPage('letters-page')">
+      <span class="nav-card-emoji">✉️</span>
+      <div class="nav-card-title">Letters</div>
+      <div class="nav-card-desc">Love letters, paragraphs, and all the things I've written straight from my heart</div>
+    </div>
+  </div>
+  <div class="home-footer">
+    Made with all my love, just for you 🌰<br>
+    <span style="font-size:0.75rem;opacity:0.6;margin-top:0.4rem;display:block">
+      <span onclick="showPage('admin-login-page')" style="cursor:pointer;text-decoration:underline;opacity:0.5">✏️ Edit</span>
+    </span>
+  </div>
+</div>
+
+<!-- ======= NICKNAMES PAGE ======= -->
+<div id="nicknames-page" class="page inner-page">
+  <div class="page-header">
+    <button class="back-btn" onclick="showPage('home-page')">← Back</button>
+    <h1 class="page-title">Things I'd Call My Gargi</h1>
+    <p class="page-subtitle">Every little word that means "you"</p>
+  </div>
+  <div class="page-content">
+    <div class="nicknames-grid" id="nicknames-grid">
+      <!-- populated by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ======= ALBUMS PAGE ======= -->
+<div id="albums-page" class="page inner-page">
+  <div class="page-header">
+    <button class="back-btn" onclick="showPage('home-page')">← Back</button>
+    <h1 class="page-title">Albums</h1>
+    <p class="page-subtitle">Our moments, forever</p>
+  </div>
+  <div class="page-content">
+    <div class="albums-grid" id="albums-grid"></div>
+  </div>
+</div>
+
+<!-- ======= EDITS PAGE ======= -->
+<div id="edits-page" class="page inner-page">
+  <div class="page-header">
+    <button class="back-btn" onclick="showPage('home-page')">← Back</button>
+    <h1 class="page-title">Edits</h1>
+    <p class="page-subtitle">Made with love, just for you</p>
+  </div>
+  <div class="page-content">
+    <div class="edits-grid" id="edits-grid"></div>
+  </div>
+</div>
+
+<!-- ======= LETTERS PAGE ======= -->
+<div id="letters-page" class="page inner-page">
+  <div class="page-header">
+    <button class="back-btn" onclick="showPage('home-page')">← Back</button>
+    <h1 class="page-title">Letters</h1>
+    <p class="page-subtitle">From my heart to yours</p>
+  </div>
+  <div class="page-content">
+    <div class="letters-list" id="letters-list"></div>
+  </div>
+</div>
+
+<!-- ======= ADMIN LOGIN ======= -->
+<div id="admin-login-page" class="page">
+  <div class="admin-login-card">
+    <span style="font-size:2.5rem;display:block;margin-bottom:0.5rem">🔒</span>
+    <h2 class="admin-login-title">Admin Panel</h2>
+    <p class="admin-login-sub">Enter the password to edit this site</p>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" type="password" id="admin-pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()">
+      <div class="form-error" id="login-error">Wrong password, try again.</div>
+    </div>
+    <button class="primary-btn" onclick="adminLogin()">Enter</button>
+    <p style="margin-top:1rem;font-size:0.8rem;color:var(--text-light);cursor:pointer" onclick="showPage('home-page')">← Back to site</p>
+  </div>
+</div>
+
+<!-- ======= ADMIN PAGE ======= -->
+<div id="admin-page" class="page">
+  <div class="admin-topbar">
+    <span class="admin-topbar-title">🐿️ Site Editor</span>
+    <div class="admin-topbar-right">
+      <button class="topbar-btn" onclick="showPage('home-page')">View Site</button>
+      <button class="topbar-btn danger" onclick="adminLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="admin-tabs">
+    <button class="admin-tab active" onclick="adminTab('nicknames')">💝 Nicknames</button>
+    <button class="admin-tab" onclick="adminTab('albums')">📸 Albums</button>
+    <button class="admin-tab" onclick="adminTab('edits')">🎬 Edits</button>
+    <button class="admin-tab" onclick="adminTab('letters')">✉️ Letters</button>
+  </div>
+  <div class="admin-content">
+    <!-- Nicknames -->
+    <div class="admin-section active" id="admin-nicknames">
+      <div class="admin-section-header">
+        <h2 class="section-h2">Nicknames</h2>
+        <button class="add-btn" onclick="openModal('nickname')">+ Add Nickname</button>
+      </div>
+      <div class="admin-item-list" id="admin-nicknames-list"></div>
+    </div>
+    <!-- Albums -->
+    <div class="admin-section" id="admin-albums">
+      <div class="admin-section-header">
+        <h2 class="section-h2">Albums</h2>
+        <button class="add-btn" onclick="openModal('album')">+ Add Photo/Video</button>
+      </div>
+      <div class="admin-item-list" id="admin-albums-list"></div>
+    </div>
+    <!-- Edits -->
+    <div class="admin-section" id="admin-edits">
+      <div class="admin-section-header">
+        <h2 class="section-h2">Edits</h2>
+        <button class="add-btn" onclick="openModal('edit')">+ Add Edit</button>
+      </div>
+      <div class="admin-item-list" id="admin-edits-list"></div>
+    </div>
+    <!-- Letters -->
+    <div class="admin-section" id="admin-letters">
+      <div class="admin-section-header">
+        <h2 class="section-h2">Letters</h2>
+        <button class="add-btn" onclick="openModal('letter')">+ Add Letter</button>
+      </div>
+      <div class="admin-item-list" id="admin-letters-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ======= MODAL ======= -->
+<div id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal-card">
+    <h3 class="modal-title" id="modal-title">Add Item</h3>
+    <div id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+      <button class="save-btn" onclick="saveModal()">Save ♡</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= LIGHTBOX ======= -->
+<div id="lightbox" onclick="if(event.target===this||event.target.classList.contains('lightbox-inner'))closeLightbox()">
+  <div class="lightbox-inner">
+    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <div id="lightbox-media-wrap"></div>
+    <p class="lightbox-caption" id="lightbox-caption"></p>
+  </div>
+</div>
+
+<!-- ======= TOAST ======= -->
+<div id="toast"></div>
+
+<script>
+// ============ DEFAULT DATA ============
+const DEFAULT_DATA = {
+  nicknames: [
+    {id:1,emoji:'🐿️',name:'Mari Khiskoli',meaning:'My Squirrel — the one that started it all'},
+    {id:2,emoji:'🧸',name:'Mari Nani Dhingli',meaning:'My tiny doll'},
+    {id:3,emoji:'🌸',name:'Gargi',meaning:'Just your name, which I love saying'},
+    {id:4,emoji:'🍂',name:'Nani Khiskoli',meaning:'Little squirrel, scurrying around'},
+    {id:5,emoji:'🫶',name:'Baby',meaning:'When everything else feels too small'},
+    {id:6,emoji:'💕',name:'Ghar ki hone wali Lakshmi',meaning:'My most favorite nickname'},
+    {id:7,emoji:'🥰',name:'Mari Baccha',meaning:'I know you love when I call you by this name'},
+    {id:8,emoji:'😎',name:'Coolest GF of Coolest BF',meaning:'Self promotion hehe'},
+    {id:9,emoji:'😘',name:'Gargudi',meaning:'The cuter version of Gargi'},
+    {id:10,emoji:'🐥',name:'Cutie Patootie',meaning:'The smile when I call you by this name'},
+  ],
+  albums: [],
+  edits: [],
+  letters: [
+    {id:1,date:'28th October 2025',title:'Things I Like About Gargudi',body:`Things I Love About You, My Mari Khiskoli 🐿️
+
+Your eyes — they cheer me up every single time 🫶
+Your smile — it's my favorite view in the world 😍
+Your laugh — it's my favorite sound ever 🎶
+Your voice — it calms every storm inside me 🌤️
+The way you say Gobu, it feels like home ❤️
+Your hugs — they make me feel safe and loved 🤗
+Your warmth — it could melt the coldest days ☀️
+The way you look at me, full of love and mischief dobi
+Your mental strength — it inspires me every day 🧠
+Your care — the softest form of love 💞
+Your honesty — pure and beautiful 🕊️
+Your hair — I could get lost playing with it 💫
+Your patience — you handle everything with grace 🌸
+The way you support me, even when I doubt myself 💪
+Your positivity — you light up dark moments 🌈
+Your confidence — it's elegant and powerful ✨
+Your kindness — you make everyone around you better 💐
+The way you understand me, even when I don't speak 🥺
+Your sense of humor — you make everything fun 😂
+Your sleepy face — cuter than anything 💤
+Your little habits — they make you you 🩵
+Your love for success — you chase what you love fearlessly 🔥
+Your simplicity — it's rare and pure 🌿
+Your eyes when you're happy — they sparkle 🌟
+The way you tease me — I secretly love it 😜
+Your charm — it's effortless 💋
+Your energy — it fills me up 💓
+The way you make me feel needed 💍
+The comfort of your presence — my favorite peace 🕯️
+Your hugs 🤍
+The way you listen, with your whole heart 💗
+Your selflessness — you give without expecting 🌹
+The way I make you laugh till you can't breathe 😂
+Your creativity — it fascinates me 🎨
+Your scent — it stays with me 🌸
+Your tiny expressions — I notice them all 👀
+Your texts — they make my whole day 📱
+The way you get shy when I compliment you 😳
+Your eyes when you talk passionately 🔥
+The way you motivate me to be better every day 🏆
+Your love for little things 🍫
+Your ability to forgive — it's beautiful 💖
+The way you make others feel special 🌷
+Your softness — my safe place 💞
+Your strength — silent but powerful 💪
+Your loyalty — unshakable 🛡️
+Your curiosity — it makes life interesting 🌍
+The way you touch me 😙
+The way you hold my hand 🤝
+Your cute random thoughts 💭
+Your late-night talks 🌙
+The way you make me believe in forever ♾️
+Your innocent questions 😇
+The way you comfort me when I'm low 🥹
+Your faith in me — it keeps me going 💫
+The way you care for cats 🐾
+Your little jealous moments 😚
+The way you light up when you talk about what you love 🌺
+Your grace — you move like poetry ✍️
+The way you say "I love you" 😘
+The way you make time for me 🕰️
+You randomly saying Gobu 🤭
+The way you look 😍
+Your laugh when you try not to laugh 🤭
+The way you make even silence feel good 🕊️
+Your honesty about your feelings 💌
+Your natural beauty — it stuns me 🌅
+The way you dream big 🌠
+Your heart — it's golden 🪙
+Your compliments — they hit differently 💬
+The way you understand my moods 🫶
+Your emotional side — it makes you real 💧
+The way you encourage me 💪
+The way you worry about me 🥺
+The sparkle in your eyes when you're excited ✨
+The way you say good morning ☀️
+The way you say "I hate you" has an "I love you" in it 🥺🌙
+Your little surprise spicy snaps 🎁
+The way you notice every small detail 👁️
+The way you fit in my arms perfectly 🤍
+Your quiet strength 💫
+The way you trust me 🕊️
+The way you support my dreams 🚀
+The way you say "mine" 😍
+The way you blush 😳
+Your elegance — it's natural 🌸
+The way you make me miss you instantly 💔
+The way you make me fall for you again and again 🥹
+Your big heart 💝
+The way you bring peace into my chaos 🌤️
+Your laughter echoing in my mind 🔊
+The way you make me believe in destiny 🌙
+The way you look at me 🫶
+Your little silly mistakes 😄
+The way you inspire me silently 💭
+Your ability to love deeply ❤️‍🔥
+The way you hold on — strong and gentle 🌺
+The way you complete my world 🌍
+You — simply you, Mari Khiskoli 🐿️. Everything about you. Every part, every heartbeat, every smile.
+
+You are Mine, Khiskoli. ❤️🐿️💞`},
+    {id:2,date:'9th February 2026',title:'First Anniversary Letter',body:`One year ago, without fireworks or announcements, my life quietly changed. Not because the world shifted Gargi, but because you walked into it and stayed. A year sounds small when you say it out loud, but living it with you made it feel like a lifetime of moments stitched together with trust, warmth, arguments, laughter, fear, growth, and love that kept deepening instead of fading Baccha.
+
+Before you, I thought love was something dramatic. Loud. Grand gestures. Movie scenes ane ee badhu crazy vastu. But you taught me that real love is calm and terrifying at the same time. Calm because being with you feels like coming home Khiskoli. Terrifying because now I care so deeply that the idea of hurting you or losing you genuinely scares me. And that fear is not weakness. It is proof Gargi that you matter more than my ego.
+
+This year was not perfect. And thank God for that. Because perfection is fake. What we had was real. We disagreed. We misunderstood each other. Sometimes we hurt without meaning to. Sometimes silence lasted longer than it should have. But every single time, we chose each other again and that's what I love the most about us Sweetheart. That choice matters more than any promise spoken in excitement. Anyone can say forever when things are easy. It takes courage to stay when things are heavy. But it's very easy when I'm with my Nakhradi.
+
+You saw me on days when I was not impressive. Days when I was tired, insecure, overthinking, quiet, or lost in my own head. And instead of asking me to be someone else, you stayed. You listened. You held space. You believed in me even when I was unsure of myself. That changed me. It made me want to be better, not for praise, but because someone like you deserves the best version of me.
+
+And I saw you too. Not just the beautiful smile that everyone notices. I saw the softness you hide when you pretend to be strong. I saw how deeply you feel things, even when you say you are fine. I saw how you love with your whole heart, without keeping score. Loving you made me respect you. And respect is deeper than attraction. It is the foundation of everything that lasts. And I respect you a lot Gargi because I know what you've been through.
+
+There were moments this year that I will carry with me forever. The late night conversations where time disappeared. The small laughs that meant more than jokes. The comfort of knowing that even on my worst day, there was someone in my corner. You became my safe place. The person I wanted to tell everything to, even the things I did not know how to explain.
+
+What we built was not accidental. It was effort. It was patience. It was choosing honesty over comfort. It was learning each other slowly, deeply, imperfectly. And that is why it means so much to me. Anyone can feel love. Not everyone is willing to work for it. We did it Gargi, we did it.
+
+This year taught me that love is not about fixing each other. It is about growing side by side. It is about holding hands while walking through uncertainty. It is about knowing that the future is unclear, but feeling brave anyway because you are not facing it alone. When I think of tomorrow, you are already there. Not as an accessory to my life, but as a part of it, and also not a part of life but a phase in my life.
+
+If I could go back and relive this year, I would not change the hard moments. They shaped us. They taught us how to communicate, how to forgive, how to be gentle when emotions run high. They taught me that loving you is not about winning arguments, but about protecting what we have.
+
+You made me softer in the best way. You made me more aware of my words, my actions, my impact. You made me realize that love is shown in consistency, not intensity. In staying. In checking in. In choosing kindness even when pride wants to speak first.
+
+One year with you did not just give me memories. It gave me perspective. It showed me what it feels like to be chosen and to choose back without hesitation. It showed me that love does not cage you. It gives you roots and wings at the same time.
+
+I do not know what the next year will bring. Life is unpredictable. There will be challenges. There will be distance at times, stress, pressure, and moments where things feel heavy again. But if there is one thing this year proved to me, it is that with you Baccha, I am willing to face it all. Not because it will be easy, but because it will be real.
+
+Thank you for trusting me with your heart. Thank you for your patience. Thank you for loving me in ways I did not even know I needed. Thank you for choosing us on days when it would have been easier to walk away.
+
+This is not just an anniversary. It is a reminder. A reminder that love like this is rare. That what we have is worth protecting. That one year was not the destination, but the foundation.
+
+And if one year with you can feel this deep, this meaningful, this alive, then I am ready to write many more chapters with you. Slowly. Honestly. Together.
+
+Happy One Year to us Gargi. Mari Nakhradi, Mari Baccha, Mari Cutie Patootie, Mari Sweetheart, Mari Vandri, Mari Ladakvayi, Mari Khiskoli and most Importantly, Mari Gargi, last ma ek jj vastu kais ke bhale tame jetlu disagree karo aa vastu ne but ek vastu sachi jj che ane ee che,
+
+TU CHO ETLE HU CHU 💗`},
+    {id:3,date:'17th June 2026',title:'Reasons to Love You',body:`I love the way you smile.
+I love how your eyes light up when you're happy.
+I love that you make ordinary days feel special.
+I love how caring you are.
+I love how you always listen to me.
+I love that I can be myself around you.
+I love your cute laugh.
+I love the way you look at me.
+I love how you remember little things about me.
+I love how you make me feel understood.
+I love your kindness.
+I love your sense of humor.
+I love how you support me.
+I love how you make me smile even on bad days.
+I love that you genuinely care about my well-being.
+I love how beautiful you are.
+I love how adorable you look in your glasses.
+I love your hugs.
+I love our random conversations.
+I love our inside jokes.
+I love that I can talk to you for hours and never get bored.
+I love how excited you get over little things.
+I love that you make me want to be a better person.
+I love your honesty.
+I love how patient you are with me.
+I love the way you say my name.
+I love how comfortable silence feels with you.
+I love how you make me feel important.
+I love how you check on me.
+I love your cute expressions.
+I love the memories we've made together.
+I love that you trust me.
+I love how affectionate you are.
+I love your soft heart.
+I love how passionate you are about the things you care about.
+I love that you accept my flaws.
+I love your little habits and quirks.
+I love how safe and peaceful I feel with you.
+I love how you can cheer me up without even trying.
+I love that you're both beautiful and kind.
+I love how much effort you put into our relationship.
+I love your cute, kissable face.
+I love that every memory with you becomes special.
+I love how happy I feel when I see you.
+I love that you believe in me.
+I love how you make me feel loved.
+I love how naturally we connect.
+I love dreaming about our future together.
+I love that you're my favorite person to spend time with.
+I love you simply because you're you. 🐿️💗`},
+    {id:4,date:'25th June 2026',title:'Gargudi No Birthday',body:`Happy Birthday to the most beautiful, cutest, and most precious person in my life. 🎂❤️
+
+Honestly, I have been sitting here thinking about what to write because no amount of words ever feels enough when it comes to you. How do I fit so many feelings, memories, and emotions into one letter? But today is your day, so I'll try.
+
+First of all, thank you. Thank you for coming into my life and becoming such an important part of it. Thank you for all the conversations we've had, from meaningful talks to the most random nonsense that somehow made us laugh for hours. Thank you for listening to me, understanding me, caring for me, and being there for me in ways that you probably don't even realize.
+
+You know what's funny? Before you, I never thought that one person could have such a huge impact on my everyday life. But now, even the smallest things remind me of you. Sometimes I see something cute and immediately think, "This is so Gargi." Sometimes something funny happens, and my first thought is that I need to tell you about it. Somehow, you've become a part of my daily happiness without even trying. ❤️
+
+I genuinely love the little things about you. I love your smile because it has this magical ability to make everything feel okay. I love your laugh because hearing it makes me happy too. I love your adorable expressions and the way you react to things. I love how caring you are and how your kindness naturally shows in everything you do. I love that I can talk to you about literally anything and still never get bored.
+
+And yes, I have to say this because it would be illegal not to on your birthday — you look absolutely adorable in your glasses. 😭❤️ Every time I see you, I somehow end up smiling. You have this cute, beautiful face that deserves to be protected at all costs.
+
+I also want you to know how much I appreciate you. You have seen me being serious, being annoying, being stupid, and probably saying the dumbest things imaginable, and somehow, you're still here. Thank you for accepting me as I am. Thank you for your patience and for making me feel comfortable enough to be myself around you. In a world where people often feel like they have to pretend, being able to be completely myself with you is something I value more than you know.
+
+I love our memories together. Every laugh, every conversation, every little moment that might seem ordinary to other people means a lot to me. One day, years from now, I know I'll look back at these moments and smile because you were there. You've turned simple moments into memories that I genuinely treasure.
+
+I also hope you realize how special you are. I know people say this a lot, but you truly deserve all the happiness in the world. You deserve people who appreciate you, moments that make you laugh until your stomach hurts, dreams that come true, and days filled with peace and happiness. I hope this year is kinder to you, brighter for you, and filled with opportunities and beautiful memories that you never forget. 🌸✨
+
+I hope you keep smiling that beautiful smile of yours. I hope you continue being the kind and caring person that you are. I hope you never doubt your worth because you bring so much happiness to the people who care about you, including me.
+
+And honestly, out of all the things I could wish for today, I think my biggest wish is simply for you to be happy. Genuinely happy. The kind of happy where your heart feels full, your mind feels peaceful, and your smile reaches your eyes. Because if anyone deserves that kind of happiness, it's you. ❤️
+
+Also, since it's your birthday, there is one rule — you're officially not allowed to worry too much today. Today, your only jobs are to smile, eat lots of cake, take a million pictures, enjoy yourself, and have an amazing day. 🎂📸✨
+
+Thank you for being the person you are. Thank you for your kindness, your patience, your smile, your cute little expressions, your caring heart, and simply for existing. I honestly feel lucky that out of billions of people in this world, our paths crossed and I got to know someone as wonderful as you.
+
+No matter how many birthdays come and go, I hope you always remember one thing — you are loved, you are appreciated, and you are incredibly special.
+
+Once again, Happy Birthday, my beautiful Mari Khiskoli. ❤️🐿️🎂
+
+May your year be filled with happiness, love, success, unforgettable memories, and countless reasons to smile.
+
+Keep shining, keep being your adorable self, and never stop being the wonderful person that you are. I hope today is as beautiful as your smile and as lovely as your heart. ❤️✨`},
+  ]
+};
+
+// ============ STORAGE ============
+const PASS = 'khiskoli25'; // Change this!
+let data = {};
+
+function loadData() {
+  try {
+    const saved = localStorage.getItem('mkdata');
+    data = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_DATA));
+  } catch(e) {
+    data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  }
+}
+
+function saveData() {
+  localStorage.setItem('mkdata', JSON.stringify(data));
+}
+
+function nextId(arr) {
+  return arr.length ? Math.max(...arr.map(x=>x.id)) + 1 : 1;
+}
+
+// ============ PAGES ============
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  if(id === 'nicknames-page') renderNicknames();
+  if(id === 'albums-page') renderAlbums();
+  if(id === 'edits-page') renderEdits();
+  if(id === 'letters-page') renderLetters();
+  if(id === 'admin-page') renderAdminAll();
+}
+
+// ============ STARS ============
+function createStars() {
+  const c = document.getElementById('stars-container');
+  for(let i=0;i<80;i++){
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random()*3+1;
+    s.style.cssText = `
+      width:${size}px;height:${size}px;
+      top:${Math.random()*100}%;left:${Math.random()*100}%;
+      --d:${2+Math.random()*3}s;
+      animation-delay:${Math.random()*4}s;
+    `;
+    c.appendChild(s);
+  }
+}
+
+// ============ PARTICLES ============
+function initParticles() {
+  const canvas = document.getElementById('particle-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const EMOJIS = ['🐿️','🌰','🍂','🌿','✦','♡'];
+  for(let i=0;i<12;i++){
+    particles.push({
+      x: Math.random()*W, y: Math.random()*H + H,
+      vx: (Math.random()-0.5)*0.4,
+      vy: -(0.3+Math.random()*0.6),
+      size: 14+Math.random()*12,
+      emoji: EMOJIS[Math.floor(Math.random()*EMOJIS.length)],
+      opacity: 0.05+Math.random()*0.12,
+      rot: Math.random()*Math.PI*2,
+      rotV: (Math.random()-0.5)*0.01
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    particles.forEach(p=>{
+      p.x += p.vx; p.y += p.vy; p.rot += p.rotV;
+      if(p.y < -60) { p.y = H+60; p.x = Math.random()*W; }
+      ctx.save();
+      ctx.globalAlpha = p.opacity;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.font = `${p.size}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.emoji, 0, 0);
+      ctx.restore();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ============ GIFT OPEN ============
+let giftOpened = false;
+function openGift() {
+  if(giftOpened) return;
+  giftOpened = true;
+  const overlay = document.getElementById('reveal-overlay');
+  overlay.classList.add('visible');
+  launchConfetti();
+}
+
+function enterSite() {
+  const overlay = document.getElementById('reveal-overlay');
+  overlay.style.transition = 'opacity 0.6s ease';
+  overlay.style.opacity = '0';
+  setTimeout(()=>{
+    overlay.style.display = 'none';
+    showPage('home-page');
+  }, 700);
+}
+
+function launchConfetti() {
+  const canvas = document.getElementById('particle-canvas');
+  const ctx = canvas.getContext('2d');
+  const confetti = [];
+  const colors = ['#E8A598','#C4797B','#C9A84C','#8B3A3A','#F7D9C4','#7D9B76'];
+  for(let i=0;i<120;i++){
+    confetti.push({
+      x: Math.random()*canvas.width, y: -20,
+      vx: (Math.random()-0.5)*5, vy: 2+Math.random()*4,
+      size: 5+Math.random()*8,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      rot: Math.random()*Math.PI*2, rotV: (Math.random()-0.5)*0.15,
+      life: 1
+    });
+  }
+  let frame = 0;
+  function drawConf(){
+    if(frame > 120) return;
+    frame++;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    confetti.forEach(c=>{
+      c.x+=c.vx; c.y+=c.vy; c.rot+=c.rotV; c.vy+=0.1; c.life-=0.008;
+      if(c.life <= 0) return;
+      ctx.save();
+      ctx.globalAlpha = c.life * 0.85;
+      ctx.fillStyle = c.color;
+      ctx.translate(c.x, c.y);
+      ctx.rotate(c.rot);
+      ctx.fillRect(-c.size/2, -c.size/4, c.size, c.size/2);
+      ctx.restore();
+    });
+    requestAnimationFrame(drawConf);
+  }
+  drawConf();
+}
+
+// ============ RENDER SECTIONS ============
+function renderNicknames() {
+  const g = document.getElementById('nicknames-grid');
+  g.innerHTML = data.nicknames.map(n=>`
+    <div class="nickname-card">
+      <span class="nickname-emoji">${n.emoji}</span>
+      <span class="nickname-name">${n.name}</span>
+      <p class="nickname-meaning">${n.meaning}</p>
+    </div>
+  `).join('');
+}
+
+function mediaEl(item, forAlbum) {
+  if(!item.url) return `<div class="${forAlbum?'album-thumb-placeholder':'edit-preview'}">📷</div>`;
+  if(item.type==='video') {
+    if(forAlbum) return `<video class="album-thumb" src="${item.url}" muted playsinline preload="metadata"></video>`;
+    return `<div class="edit-preview"><video src="${item.url}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0"></video><div class="edit-play-icon">▶</div></div>`;
+  }
+  if(forAlbum) return `<img class="album-thumb" src="${item.url}" alt="${item.title}" loading="lazy" onerror="this.parentNode.innerHTML='<div class=album-thumb-placeholder>📷</div>'">`;
+  return `<div class="edit-preview"><img src="${item.url}" alt="${item.title}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0" onerror="this.style.display='none'"><div class="edit-play-icon" style="background:rgba(0,0,0,0.3)">🖼</div></div>`;
+}
+
+function renderAlbums() {
+  const g = document.getElementById('albums-grid');
+  if(!data.albums.length){g.innerHTML='<p style="color:var(--text-light);font-style:italic">No photos yet — add some from the admin panel!</p>';return;}
+  g.innerHTML = data.albums.map(a=>`
+    <div class="album-card" onclick="openLightbox('${a.url||''}','${esc(a.title)}','${esc(a.caption||'')}','${a.type||'image'}')">
+      ${mediaEl(a, true)}
+      <div class="album-info">
+        <div class="album-title">${a.title}</div>
+        <div class="album-date">${a.date||''}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderEdits() {
+  const g = document.getElementById('edits-grid');
+  if(!data.edits.length){g.innerHTML='<p style="color:var(--text-light);font-style:italic">No edits yet — add some from the admin panel!</p>';return;}
+  g.innerHTML = data.edits.map(e=>`
+    <div class="edit-card" onclick="openLightbox('${e.url||''}','${esc(e.title)}','${esc(e.desc||'')}','${e.type||'image'}')">
+      ${mediaEl(e, false)}
+      <div class="edit-info">
+        <div class="edit-title">${e.title}</div>
+        <div class="edit-desc">${e.desc||''}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderLetters() {
+  const g = document.getElementById('letters-list');
+  if(!data.letters.length){g.innerHTML='<p style="color:var(--text-light);font-style:italic">No letters yet — add some from the admin panel!</p>';return;}
+  g.innerHTML = data.letters.map(l=>`
+    <div class="letter-card">
+      <div class="letter-date">${l.date||''}</div>
+      <div class="letter-title">${l.title}</div>
+      <div class="letter-body">${escHTML(l.body)}</div>
+    </div>
+  `).join('');
+}
+
+function esc(s){return (s||'').replace(/'/g,"&#39;").replace(/"/g,'&quot;');}
+function escHTML(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ============ LIGHTBOX ============
+function openLightbox(url, title, caption, type) {
+  if(!url) { showToast('No media file — add one from the admin panel!'); return; }
+  const lb = document.getElementById('lightbox');
+  const wrap = document.getElementById('lightbox-media-wrap');
+  const cap = document.getElementById('lightbox-caption');
+  if(type==='video') {
+    wrap.innerHTML = `<video id="lightbox-media" src="${url}" controls autoplay style="max-width:100%;max-height:75vh;border-radius:12px;display:block;margin:0 auto"></video>`;
+  } else {
+    wrap.innerHTML = `<img id="lightbox-media" src="${url}" alt="${title}" onerror="this.src='';this.alt='Could not load image'">`;
+  }
+  cap.textContent = caption || title;
+  lb.classList.add('open');
+}
+function closeLightbox() {
+  const lb = document.getElementById('lightbox');
+  lb.classList.remove('open');
+  const v = lb.querySelector('video');
+  if(v) v.pause();
+  document.getElementById('lightbox-media-wrap').innerHTML = '';
+}
+
+// ============ ADMIN ============
+function adminLogin() {
+  const pw = document.getElementById('admin-pw').value;
+  if(pw === PASS) {
+    document.getElementById('login-error').style.display = 'none';
+    document.getElementById('admin-pw').value = '';
+    showPage('admin-page');
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+  }
+}
+function adminLogout() { showPage('home-page'); }
+
+function adminTab(name) {
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('admin-'+name).classList.add('active');
+}
+
+function renderAdminAll() {
+  renderAdminList('nicknames', data.nicknames, n=>`${n.emoji} ${n.name}`, n=>n.meaning);
+  renderAdminList('albums', data.albums, a=>a.title, a=>a.date||'No date');
+  renderAdminList('edits', data.edits, e=>e.title, e=>e.desc||'');
+  renderAdminList('letters', data.letters, l=>l.title, l=>l.date||'');
+}
+
+function renderAdminList(type, arr, nameF, subF) {
+  const el = document.getElementById('admin-'+type+'-list');
+  if(!arr.length){ el.innerHTML = '<p style="color:var(--text-light);font-style:italic;font-size:0.875rem">Nothing here yet — add some!</p>'; return; }
+  el.innerHTML = arr.map(item=>`
+    <div class="admin-item">
+      <div class="admin-item-info">
+        <div class="admin-item-name">${escHTML(nameF(item))}</div>
+        <div class="admin-item-sub">${escHTML(subF(item))}</div>
+      </div>
+      <div class="admin-item-actions">
+        <button class="icon-btn" onclick="openModal('${type}',${item.id})">✏️</button>
+        <button class="icon-btn del" onclick="deleteItem('${type}',${item.id})">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteItem(type, id) {
+  if(!confirm('Delete this item?')) return;
+  data[type] = data[type].filter(x=>x.id!==id);
+  saveData();
+  renderAdminAll();
+  showToast('Deleted!');
+}
+
+// ============ MODAL ============
+let modalType = null, modalId = null;
+
+function openModal(type, id) {
+  modalType = type; modalId = id || null;
+  const existing = id ? data[type+'s']?.find(x=>x.id===id) || data[type]?.find(x=>x.id===id) : null;
+
+  // Normalize type to plural for lookup
+  const key = ['album','edit','letter','nickname'].includes(type) ? type+'s' : type+'s';
+  const item = id ? data[key].find(x=>x.id===id) : null;
+
+  const titles = {nickname:'Nickname',album:'Photo / Video',edit:'Edit / Graphic',letter:'Letter'};
+  document.getElementById('modal-title').textContent = (item?'Edit ':'Add ') + (titles[type]||type);
+
+  let html = '';
+  if(type==='nickname') {
+    html = `
+      <div class="form-group"><label class="form-label">Emoji</label><input class="form-input" id="f-emoji" value="${item?item.emoji:'🐿️'}" maxlength="4"></div>
+      <div class="form-group"><label class="form-label">Name / Nickname</label><input class="form-input" id="f-name" value="${item?escHTML(item.name):''}" placeholder="e.g. Mari Khiskoli"></div>
+      <div class="form-group"><label class="form-label">Meaning / Note</label><input class="form-input" id="f-meaning" value="${item?escHTML(item.meaning):''}" placeholder="What this name means to you"></div>
+    `;
+  } else if(type==='album') {
+    html = `
+      <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="f-name" value="${item?escHTML(item.title):''}" placeholder="Memory title"></div>
+      <div class="form-group"><label class="form-label">Date</label><input class="form-input" id="f-date" value="${item?escHTML(item.date||''):''}" placeholder="e.g. June 25, 2025"></div>
+      <div class="form-group"><label class="form-label">Caption</label><input class="form-input" id="f-caption" value="${item?escHTML(item.caption||''):''}" placeholder="A caption for this photo"></div>
+      <div class="form-group"><label class="form-label">Media URL (image or video)</label><input class="form-input" id="f-url" value="${item?escHTML(item.url||''):''}" placeholder="Paste a URL or use base64 data URI"></div>
+      <div class="form-group">
+        <label class="form-label">Upload File (optional)</label>
+        <div class="file-upload-area" onclick="document.getElementById('f-file').click()">
+          📎 Click to upload a photo or video<br><small style="opacity:0.7">Stored in browser — works offline</small>
+          <input type="file" id="f-file" accept="image/*,video/*" onchange="handleFileUpload(this,'f-url','f-type')">
+        </div>
+      </div>
+      <input type="hidden" id="f-type" value="${item?item.type||'image':'image'}">
+    `;
+  } else if(type==='edit') {
+    html = `
+      <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="f-name" value="${item?escHTML(item.title):''}" placeholder="Edit title"></div>
+      <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="f-desc" value="${item?escHTML(item.desc||''):''}" placeholder="Describe this edit"></div>
+      <div class="form-group"><label class="form-label">Media URL</label><input class="form-input" id="f-url" value="${item?escHTML(item.url||''):''}" placeholder="Paste a URL or data URI"></div>
+      <div class="form-group">
+        <label class="form-label">Upload File</label>
+        <div class="file-upload-area" onclick="document.getElementById('f-file').click()">
+          📎 Click to upload an image or video
+          <input type="file" id="f-file" accept="image/*,video/*" onchange="handleFileUpload(this,'f-url','f-type')">
+        </div>
+      </div>
+      <input type="hidden" id="f-type" value="${item?item.type||'image':'image'}">
+    `;
+  } else if(type==='letter') {
+    html = `
+      <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="f-name" value="${item?escHTML(item.title):''}" placeholder="Letter title"></div>
+      <div class="form-group"><label class="form-label">Date</label><input class="form-input" id="f-date" value="${item?escHTML(item.date||''):''}" placeholder="e.g. Her 18th birthday"></div>
+      <div class="form-group"><label class="form-label">Letter Body</label><textarea class="form-textarea" id="f-body" rows="8" placeholder="Write your letter here...">${item?escHTML(item.body):''}</textarea></div>
+    `;
+  }
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(()=>{const f=document.getElementById('f-name')||document.getElementById('f-emoji');if(f)f.focus();},100);
+}
+
+function handleFileUpload(input, urlFieldId, typeFieldId) {
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById(urlFieldId).value = e.target.result;
+    document.getElementById(typeFieldId).value = file.type.startsWith('video') ? 'video' : 'image';
+    showToast('File loaded! Save to keep it.');
+  };
+  reader.readAsDataURL(file);
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  modalType = null; modalId = null;
+}
+
+function saveModal() {
+  const type = modalType;
+  const key = type+'s';
+
+  let obj = {};
+  const g = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+
+  if(type==='nickname') {
+    if(!g('f-name')){ showToast('Please enter a name!'); return; }
+    obj = { emoji: g('f-emoji')||'🐿️', name: g('f-name'), meaning: g('f-meaning') };
+  } else if(type==='album') {
+    if(!g('f-name')){ showToast('Please enter a title!'); return; }
+    obj = { title: g('f-name'), date: g('f-date'), caption: g('f-caption'), url: g('f-url'), type: g('f-type')||'image' };
+  } else if(type==='edit') {
+    if(!g('f-name')){ showToast('Please enter a title!'); return; }
+    obj = { title: g('f-name'), desc: g('f-desc'), url: g('f-url'), type: g('f-type')||'image' };
+  } else if(type==='letter') {
+    if(!g('f-name')){ showToast('Please enter a title!'); return; }
+    obj = { title: g('f-name'), date: g('f-date'), body: g('f-body') };
+  }
+
+  if(modalId) {
+    const idx = data[key].findIndex(x=>x.id===modalId);
+    if(idx>=0) data[key][idx] = {...data[key][idx], ...obj};
+  } else {
+    obj.id = nextId(data[key]);
+    data[key].push(obj);
+  }
+
+  saveData();
+  renderAdminAll();
+  closeModal();
+  showToast('Saved! ♡');
+}
+
+// ============ TOAST ============
+function showToast(msg, dur=2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), dur);
+}
+
+// ============ INIT ============
+loadData();
+createStars();
+initParticles();
+
+// Keyboard escape
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') { closeLightbox(); closeModal(); }
+});
+</script>
+</body>
+</html>
