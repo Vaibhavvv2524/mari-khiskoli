@@ -569,8 +569,26 @@
 
 <canvas id="particle-canvas"></canvas>
 
+<!-- ======= PASSWORD GATE ======= -->
+<div id="gate-page" class="page active" style="background:linear-gradient(135deg,#2C1810 0%,#4A2520 40%,#6B3A35 70%,#3A2010 100%);align-items:center;justify-content:center;min-height:100vh;">
+  <div style="text-align:center;padding:2rem;position:relative;z-index:10;max-width:380px;width:100%;">
+    <span style="font-size:4rem;display:block;margin-bottom:1rem;animation:float 3s ease-in-out infinite">🐿️</span>
+    <h1 style="font-family:'Playfair Display',serif;font-style:italic;color:#F7D9C4;font-size:2rem;margin-bottom:0.5rem">This is private</h1>
+    <p style="color:rgba(247,217,196,0.65);font-size:0.875rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:2rem;font-weight:300">Enter the secret word to open your gift</p>
+    <input id="gate-input" type="password"
+      style="width:100%;padding:0.85rem 1.25rem;border-radius:50px;border:1.5px solid rgba(247,217,196,0.3);background:rgba(255,255,255,0.08);color:#F7D9C4;font-family:'Lato',sans-serif;font-size:1rem;text-align:center;outline:none;letter-spacing:0.1em;margin-bottom:1rem"
+      placeholder="your secret word..."
+      onkeydown="if(event.key==='Enter')checkGate()">
+    <div id="gate-error" style="color:#E8A598;font-size:0.8rem;margin-bottom:0.75rem;display:none;min-height:1.2em">Wrong password — think harder! 🐿️</div>
+    <button onclick="checkGate()"
+      style="background:linear-gradient(135deg,#C9A84C,#E8C97A,#C9A84C);border:none;border-radius:50px;padding:0.9rem 2.5rem;font-family:'Lato',sans-serif;font-size:1rem;font-weight:700;color:#3A2010;cursor:pointer;letter-spacing:0.08em;text-transform:uppercase;width:100%;box-shadow:0 4px 20px rgba(201,168,76,0.4)">
+      Open 🎁
+    </button>
+  </div>
+</div>
+
 <!-- ======= UNWRAP PAGE ======= -->
-<div id="unwrap-page" class="page active">
+<div id="unwrap-page" class="page">
   <div class="stars" id="stars-container"></div>
   <div class="gift-container">
     <div class="gift-box-wrap floating" onclick="openGift()">
@@ -1058,6 +1076,24 @@ May your year be filled with happiness, love, success, unforgettable memories, a
 Keep shining, keep being your adorable self, and never stop being the wonderful person that you are. I hope today is as beautiful as your smile and as lovely as your heart. ❤️✨`},
   ]
 };
+
+// ============ GATE ============
+const GATE_PASS = 'vandruAndKhiskoli';
+function checkGate() {
+  const val = document.getElementById('gate-input').value;
+  if(val === GATE_PASS) {
+    sessionStorage.setItem('gateOpen','1');
+    document.getElementById('gate-page').classList.remove('active');
+    document.getElementById('gate-page').style.display = 'none';
+    document.getElementById('unwrap-page').classList.add('active');
+  } else {
+    const err = document.getElementById('gate-error');
+    err.style.display = 'block';
+    document.getElementById('gate-input').value = '';
+    document.getElementById('gate-input').focus();
+    setTimeout(()=>err.style.display='none', 3000);
+  }
+}
 
 // ============ STORAGE ============
 const PASS = 'khiskoli25'; // Change this!
