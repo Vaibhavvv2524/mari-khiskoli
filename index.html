@@ -852,8 +852,26 @@ const DEFAULT_DATA = {
     {id:9,emoji:'😘',name:'Gargudi',meaning:'The cuter version of Gargi'},
     {id:10,emoji:'🐥',name:'Cutie Patootie',meaning:'The smile when I call you by this name'},
   ],
-  albums: [],
-  edits: [],
+  albums: [
+    {id:1,title:"Us 🐿️",date:"",caption:"AI photo of us",url:"https://res.cloudinary.com/dht5scznb/image/upload/v1782283326/7048D11D-1A8F-4E59-9F9E-1336BD576FEB_zor5ao.png",type:"image"},
+    {id:2,title:"Together",date:"",caption:"",url:"https://res.cloudinary.com/dht5scznb/image/upload/v1782283389/IMG_4344_ihcbfe.jpg",type:"image"},
+    {id:3,title:"Together",date:"",caption:"",url:"https://res.cloudinary.com/dht5scznb/image/upload/v1782283424/IMG_4337_lep2jg.jpg",type:"image"},
+    {id:4,title:"Together",date:"",caption:"",url:"https://res.cloudinary.com/dht5scznb/image/upload/v1782283441/IMG_2704_hkthtb.jpg",type:"image"},
+    {id:5,title:"Together",date:"",caption:"",url:"https://res.cloudinary.com/dht5scznb/image/upload/v1782283523/IMG_2703_ke8md9.jpg",type:"image"},
+    {id:6,title:"Together",date:"",caption:"",url:"https://res.cloudinary.com/dht5scznb/image/upload/v1782283552/A5797754-9D7E-408A-8022-693B73829A0B_1_105_c_odkpls.jpg",type:"image"},
+    {id:7,title:"Together",date:"",caption:"",url:"https://res.cloudinary.com/dht5scznb/image/upload/v1782283577/0F5C022D-5C44-4696-B864-04060A409148_1_105_c_hb3cye.jpg",type:"image"},
+    {id:8,title:"Together",date:"",caption:"",url:"https://res.cloudinary.com/dht5scznb/image/upload/v1782283613/857D6C70-47D0-4AE1-8995-E3DB6D8D9884_1_105_c_yfgdmf.jpg",type:"image"},
+    {id:9,title:"Together",date:"",caption:"",url:"https://res.cloudinary.com/dht5scznb/image/upload/v1782283664/87CE7B7F-A3B6-42E2-96DB-EA0EEBB9634E_1_201_a_qvayfq.jpg",type:"image"},
+    {id:10,title:"Together",date:"",caption:"",url:"https://res.cloudinary.com/dht5scznb/image/upload/v1782283686/ECE284FE-3644-4C62-9C3F-0366BDE29E18_buisdt.jpg",type:"image"},
+    {id:11,title:"Together",date:"",caption:"",url:"https://res.cloudinary.com/dht5scznb/image/upload/v1782283711/69500903-CC89-4BEF-A16D-28BFBBD82C80_1_102_o_ewlyhq.jpg",type:"image"},
+    {id:12,title:"Together",date:"",caption:"",url:"https://res.cloudinary.com/dht5scznb/image/upload/v1782283760/0CFEBA19-BCA3-4399-BB7A-1675A68895FA_wgldkh.jpg",type:"image"},
+    {id:13,title:"Video Memory",date:"",caption:"",url:"https://res.cloudinary.com/dht5scznb/video/upload/v1782286376/3EC9A415-DFEE-43D1-A8C1-625D7B033CE5_b1tzqp.mp4",type:"video"},
+    {id:14,title:"Video Memory",date:"",caption:"",url:"https://res.cloudinary.com/dht5scznb/video/upload/v1782286273/IMG_4348_lmquwn.mp4",type:"video"},
+    {id:15,title:"Video Memory",date:"",caption:"",url:"https://res.cloudinary.com/dht5scznb/video/upload/v1782286640/IMG_4334_2_okdvai.mp4",type:"video"},
+  ],
+  edits: [
+    {id:1,title:"Us ✨",desc:"",url:"https://res.cloudinary.com/dht5scznb/image/upload/v1782283978/7AE0EEDF-E632-4B5C-AD8C-798B35B13BE0_1_102_o_ecotj7.jpg",type:"image"},
+  ],
   letters: [
     {id:1,date:'28th October 2025',title:'Things I Like About Gargudi',body:`Things I Love About You, My Mari Khiskoli 🐿️
 
@@ -1409,29 +1427,27 @@ function openModal(type, id) {
       <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="f-name" value="${item?escHTML(item.title):''}" placeholder="Memory title"></div>
       <div class="form-group"><label class="form-label">Date</label><input class="form-input" id="f-date" value="${item?escHTML(item.date||''):''}" placeholder="e.g. June 25, 2025"></div>
       <div class="form-group"><label class="form-label">Caption</label><input class="form-input" id="f-caption" value="${item?escHTML(item.caption||''):''}" placeholder="A caption for this photo"></div>
-      <div class="form-group"><label class="form-label">Media URL (image or video)</label><input class="form-input" id="f-url" value="${item?escHTML(item.url||''):''}" placeholder="Paste a URL or use base64 data URI"></div>
+      <div class="form-group"><label class="form-label">Media URL</label><input class="form-input" id="f-url" value="${item?escHTML(item.url||''):''}" placeholder="Paste your Cloudinary URL here"></div>
       <div class="form-group">
-        <label class="form-label">Upload File (optional)</label>
-        <div class="file-upload-area" onclick="document.getElementById('f-file').click()">
-          📎 Click to upload a photo or video<br><small style="opacity:0.7">Stored in browser — works offline</small>
-          <input type="file" id="f-file" accept="image/*,video/*" onchange="handleFileUpload(this,'f-url','f-type')">
-        </div>
+        <label class="form-label">Media Type</label>
+        <select class="form-input" id="f-type">
+          <option value="image" ${(!item||item.type!=='video')?'selected':''}>📷 Photo / Image</option>
+          <option value="video" ${(item&&item.type==='video')?'selected':''}>🎬 Video</option>
+        </select>
       </div>
-      <input type="hidden" id="f-type" value="${item?item.type||'image':'image'}">
     `;
   } else if(type==='edit') {
     html = `
       <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="f-name" value="${item?escHTML(item.title):''}" placeholder="Edit title"></div>
       <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="f-desc" value="${item?escHTML(item.desc||''):''}" placeholder="Describe this edit"></div>
-      <div class="form-group"><label class="form-label">Media URL</label><input class="form-input" id="f-url" value="${item?escHTML(item.url||''):''}" placeholder="Paste a URL or data URI"></div>
+      <div class="form-group"><label class="form-label">Media URL</label><input class="form-input" id="f-url" value="${item?escHTML(item.url||''):''}" placeholder="Paste your Cloudinary URL here"></div>
       <div class="form-group">
-        <label class="form-label">Upload File</label>
-        <div class="file-upload-area" onclick="document.getElementById('f-file').click()">
-          📎 Click to upload an image or video
-          <input type="file" id="f-file" accept="image/*,video/*" onchange="handleFileUpload(this,'f-url','f-type')">
-        </div>
+        <label class="form-label">Media Type</label>
+        <select class="form-input" id="f-type">
+          <option value="image" ${(!item||item.type!=='video')?'selected':''}>📷 Photo / Image</option>
+          <option value="video" ${(item&&item.type==='video')?'selected':''}>🎬 Video</option>
+        </select>
       </div>
-      <input type="hidden" id="f-type" value="${item?item.type||'image':'image'}">
     `;
   } else if(type==='letter') {
     html = `
